@@ -31,27 +31,45 @@ function searchItems({ q, category, kind }) {
     WHERE items.status != 'removed'
   `;
 
+  const params = [];
+
   if (q) {
-    sql += ` AND items.title || ' ' || items.description || ' ' || items.location LIKE '%${q}%'`;
+    sql += `
+      AND (
+        items.title || ' ' || items.description || ' ' || items.location
+      ) LIKE ?
+    `;
+    params.push(`%${q}%`);
   }
 
   if (category && category !== "all") {
-    sql += ` AND items.category = '${category}'`;
+    sql += " AND items.category = ?";
+    params.push(category);
   }
 
   if (kind && kind !== "all") {
-    sql += ` AND items.kind = '${kind}'`;
+    sql += " AND items.kind = ?";
+    params.push(kind);
   }
 
   sql += " ORDER BY items.created_at DESC LIMIT 50";
-  return db.prepare(sql).all();
+
+  return db.prepare(sql).all(...params);
 }
 
 router.get("/", (req, res) => {
   const q = String(req.query.q || "").trim();
-  const category = String(req.query.category || "all");
-  const kind = String(req.query.kind || "all");
 
+const requestedCategory = String(req.query.category || "all");
+const requestedKind = String(req.query.kind || "all");
+
+const category = ["all", ...CATEGORIES.map((entry) => entry.slug)].includes(requestedCategory)
+  ? requestedCategory
+  : "all";
+
+const kind = ["all", "lost", "found"].includes(requestedKind)
+  ? requestedKind
+  : "all";
   let items = [];
   let searchError = null;
   try {
