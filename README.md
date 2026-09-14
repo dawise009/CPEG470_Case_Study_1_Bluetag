@@ -78,7 +78,7 @@ Then look for a security defect in the running system, document how to trigger i
 
 ## Hosted URL
 
-[Add hosted URL after deployment]
+https://cpeg470-case-study-1-bluetag.onrender.com
 
 ## Architecture
 
